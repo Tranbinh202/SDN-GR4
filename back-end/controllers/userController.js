@@ -1,11 +1,12 @@
 const User = require("../models/User");
-const Role = require("../models/Role"); 
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { body, validationResult } = require("express-validator");
-const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client('786381256762-26ds2r2qbeus4ekb31nmsf3ji52hosj2.apps.googleusercontent.com');
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(
+  "786381256762-26ds2r2qbeus4ekb31nmsf3ji52hosj2.apps.googleusercontent.com"
+);
 
 // Đăng ký
 exports.register = async (req, res) => {
@@ -39,8 +40,8 @@ exports.register = async (req, res) => {
       phone,
       password,
       role: userRole._id,
-      verificationToken,  
-      isVerified: false,  
+      verificationToken,
+      isVerified: false,
     });
 
     await newUser.save();
@@ -74,10 +75,15 @@ exports.register = async (req, res) => {
     try {
       await transporter.sendMail(mailOptions);
       console.log("Email xác nhận đã gửi thành công tới:", email);
-      res.status(201).json({ message: "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản." });
+      res.status(201).json({
+        message:
+          "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
+      });
     } catch (error) {
       console.error("Lỗi gửi email:", error);
-      res.status(500).json({ message: "Đăng ký thành công nhưng không thể gửi email xác nhận." });
+      res.status(500).json({
+        message: "Đăng ký thành công nhưng không thể gửi email xác nhận.",
+      });
     }
   } catch (err) {
     console.error("Lỗi khi đăng ký:", err);
@@ -92,7 +98,9 @@ exports.verifyEmail = async (req, res) => {
     const user = await User.findOne({ verificationToken: token });
 
     if (!user) {
-      return res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
+      return res
+        .status(400)
+        .json({ message: "Token không hợp lệ hoặc đã hết hạn" });
     }
 
     user.isVerified = true;
@@ -110,7 +118,9 @@ exports.verifyEmail = async (req, res) => {
 exports.login = [
   // Validate email và mật khẩu
   body("email").isEmail().withMessage("Email không hợp lệ"),
-  body("password").isLength({ min: 6 }).withMessage("Mật khẩu phải có ít nhất 6 ký tự"),
+  body("password")
+    .isLength({ min: 6 })
+    .withMessage("Mật khẩu phải có ít nhất 6 ký tự"),
 
   async (req, res) => {
     // Kiểm tra lỗi validate
@@ -126,18 +136,28 @@ exports.login = [
       const user = await User.findOne({ email }).populate("role");
 
       if (!user) {
-        return res.status(404).json({ message: "Tài khoản hoặc mật khẩu không đúng" });
+        return res
+          .status(404)
+          .json({ message: "Tài khoản hoặc mật khẩu không đúng" });
       }
 
       if (!user.isVerified) {
-        return res.status(403).json({ message: "Tài khoản của bạn chưa được xác minh. Vui lòng xác minh email của bạn trước khi đăng nhập." });
+        return res.status(403).json({
+          message:
+            "Tài khoản của bạn chưa được xác minh. Vui lòng xác minh email của bạn trước khi đăng nhập.",
+        });
       }
 
       if (user.password !== password) {
-        return res.status(400).json({ message: "Tài khoản hoặc mật khẩu không đúng" });
+        return res
+          .status(400)
+          .json({ message: "Tài khoản hoặc mật khẩu không đúng" });
       }
       if (user.isBanned) {
-        return res.status(403).json({ message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ." });
+        return res.status(403).json({
+          message:
+            "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ.",
+        });
       }
       // Tạo JWT token nếu đăng nhập thành công
       const token = jwt.sign(
@@ -145,10 +165,10 @@ exports.login = [
         process.env.JWT_SECRET,
         { expiresIn: "1d" }
       );
-      
+
       console.log("🔑 JWT_SECRET khi tạo token:", process.env.JWT_SECRET);
       console.log("✅ Token mới tạo:", token);
-      
+
       res.status(200).json({
         token,
         user: {
@@ -159,7 +179,7 @@ exports.login = [
           phone: user.phone,
           address: user.address,
           image: user.image || "https://example.com/default-avatar.png",
-          isVerified: user.isVerified 
+          isVerified: user.isVerified,
         },
       });
     } catch (err) {
@@ -205,7 +225,9 @@ exports.changePassword = async (req, res) => {
 
     // Kiểm tra mật khẩu mới có hợp lệ không
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: "New password must be at least 6 characters long" });
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 6 characters long" });
     }
 
     user.password = newPassword;
@@ -221,7 +243,7 @@ exports.changePassword = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     // Kiểm tra token hết hạn
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(200).json({ message: "Logged out successfully" });
     }
@@ -242,26 +264,27 @@ exports.logout = async (req, res) => {
 // Gửi yêu cầu quên mật khẩu
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
-  
+
   try {
     const user = await User.findOne({ email });
-  
+
     if (!user) {
       return res.status(200).json({
-        message: "Nếu email hợp lệ, chúng tôi sẽ gửi một liên kết đặt lại mật khẩu.",
+        message:
+          "Nếu email hợp lệ, chúng tôi sẽ gửi một liên kết đặt lại mật khẩu.",
       });
     }
-  
+
     // Tạo token đặt lại mật khẩu
     const resetToken = crypto.randomBytes(20).toString("hex");
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
     await user.save();
-  
+
     // Link đặt lại mật khẩu
     const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
     const message = `Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng truy cập link sau để đặt lại mật khẩu: \n\n ${resetUrl}`;
-  
+
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -269,41 +292,43 @@ exports.forgotPassword = async (req, res) => {
         pass: process.env.EMAIL_PASSWORD,
       },
     });
-  
+
     await transporter.sendMail({
       from: `"GearUp Support" <${process.env.EMAIL}>`,
       to: user.email,
       subject: "Password Reset Request",
       text: message,
     });
-  
+
     res.status(200).json({
-      message: "Nếu email hợp lệ, chúng tôi đã gửi một liên kết đặt lại mật khẩu.",
+      message:
+        "Nếu email hợp lệ, chúng tôi đã gửi một liên kết đặt lại mật khẩu.",
     });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: "Đã xảy ra lỗi. Vui lòng thử lại sau." });
   }
 };
-  
+
 // Đặt lại mật khẩu
 exports.resetPassword = async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
-  
+
   try {
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpire: { $gt: Date.now() },
     });
-  
-    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
-  
+
+    if (!user)
+      return res.status(400).json({ message: "Invalid or expired token" });
+
     user.password = newPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
-  
+
     res.status(200).json({ message: "Mật khẩu đã được đặt lại thành công!" });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -335,17 +360,17 @@ exports.updateUserProfile = async (req, res) => {
 
   // Validate tên
   if (name) {
-    if (name.trim() === '') {
-      return res.status(400).json({ 
-        message: "Tên không được để trống" 
+    if (name.trim() === "") {
+      return res.status(400).json({
+        message: "Tên không được để trống",
       });
     }
 
     // Kiểm tra tên chỉ chứa chữ cái và khoảng trắng
     const nameRegex = /^[A-Za-zÀ-ỹ\s]+$/;
     if (!nameRegex.test(name.trim())) {
-      return res.status(400).json({ 
-        message: "Tên chỉ được chứa chữ cái và khoảng trắng" 
+      return res.status(400).json({
+        message: "Tên chỉ được chứa chữ cái và khoảng trắng",
       });
     }
   }
@@ -354,8 +379,9 @@ exports.updateUserProfile = async (req, res) => {
   if (phone) {
     const phoneRegex = /^0\d{9}$/;
     if (!phoneRegex.test(phone)) {
-      return res.status(400).json({ 
-        message: "Số điện thoại không hợp lệ. Phải bắt đầu bằng số 0 và có 10 số" 
+      return res.status(400).json({
+        message:
+          "Số điện thoại không hợp lệ. Phải bắt đầu bằng số 0 và có 10 số",
       });
     }
   }
@@ -366,9 +392,9 @@ exports.updateUserProfile = async (req, res) => {
   if (phone) user.phone = phone;
 
   await user.save();
-  res.json({ 
-    message: "Cập nhật thông tin thành công", 
-    user 
+  res.json({
+    message: "Cập nhật thông tin thành công",
+    user,
   });
 };
 
@@ -381,7 +407,9 @@ exports.blockUser = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User không tồn tại" });
     user.isBanned = isBlocked;
     await user.save();
-    res.status(200).json({ message: `User đã được ${isBlocked ? 'block' : 'unblock'} thành công` });
+    res.status(200).json({
+      message: `User đã được ${isBlocked ? "block" : "unblock"} thành công`,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -399,12 +427,15 @@ exports.updateUserRole = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { role: role._id },
-      { new: true }  // Lấy về document sau khi update
+      { new: true } // Lấy về document sau khi update
     ).populate("role");
 
-    if (!updatedUser) return res.status(404).json({ message: "User không tồn tại" });
+    if (!updatedUser)
+      return res.status(404).json({ message: "User không tồn tại" });
 
-    res.status(200).json({ message: "Role của user đã được cập nhật", user: updatedUser });
+    res
+      .status(200)
+      .json({ message: "Role của user đã được cập nhật", user: updatedUser });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -415,14 +446,15 @@ exports.googleLogin = async (req, res) => {
   try {
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: '786381256762-26ds2r2qbeus4ekb31nmsf3ji52hosj2.apps.googleusercontent.com',
+      audience:
+        "786381256762-26ds2r2qbeus4ekb31nmsf3ji52hosj2.apps.googleusercontent.com",
     });
     const payload = ticket.getPayload();
     const { email, name, picture, sub: googleId } = payload;
 
     // Tìm user theo email
     let user = await User.findOne({ email }).populate("role");
-    
+
     if (!user) {
       // Nếu user chưa tồn tại, tạo user mới
       const userRole = await Role.findOne({ role: "customer" });
@@ -431,7 +463,7 @@ exports.googleLogin = async (req, res) => {
       }
 
       // Tạo mật khẩu ngẫu nhiên cho tài khoản Google
-      const randomPassword = crypto.randomBytes(16).toString('hex');
+      const randomPassword = crypto.randomBytes(16).toString("hex");
 
       // Tạo user mới với thông tin từ Google
       user = new User({
@@ -442,7 +474,7 @@ exports.googleLogin = async (req, res) => {
         role: userRole._id,
         isVerified: true,
         image: picture || "https://example.com/default-avatar.png",
-        loginType: 'google' // Thêm trường để đánh dấu đây là tài khoản Google
+        loginType: "google", // Thêm trường để đánh dấu đây là tài khoản Google
       });
 
       await user.save();
@@ -468,11 +500,13 @@ exports.googleLogin = async (req, res) => {
         phone: user.phone,
         address: user.address,
         image: user.image,
-        isVerified: user.isVerified
+        isVerified: user.isVerified,
       },
     });
   } catch (error) {
     console.error("Google Login Error:", error);
-    res.status(500).json({ message: "Đăng nhập Google thất bại. Vui lòng thử lại." });
+    res
+      .status(500)
+      .json({ message: "Đăng nhập Google thất bại. Vui lòng thử lại." });
   }
 };

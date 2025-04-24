@@ -1,6 +1,6 @@
-const Order = require('../models/Order');
+const Order = require('../models/Orders');
 const User = require('../models/User'); // Import model User
-const Category = require('../models/Category'); // Add this import
+const Category = require('../models/Categories'); // Add this import
 const express = require("express");
 const payOS = require("../config/payos");
 const Product = require('../models/Product');

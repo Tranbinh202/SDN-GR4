@@ -1,7 +1,6 @@
-
 const Favorite = require("../models/Favorite");
 const Product = require("../models/Product");
-const Category = require("../models/Category");
+const Category = require("../models/Categories");
 const mongoose = require("mongoose");
 
 exports.getMostFavoriteProductsByCategory = async (req, res) => {
@@ -21,8 +20,8 @@ exports.getMostFavoriteProductsByCategory = async (req, res) => {
             from: "products",
             localField: "favorites",
             foreignField: "_id",
-            as: "productData"
-          }
+            as: "productData",
+          },
         },
         { $unwind: "$productData" },
         { $match: { "productData.category_id": category._id } },
@@ -30,14 +29,14 @@ exports.getMostFavoriteProductsByCategory = async (req, res) => {
           $group: {
             _id: "$favorites",
             count: { $sum: 1 },
-            product: { $first: "$productData" }
-          }
+            product: { $first: "$productData" },
+          },
         },
         { $sort: { count: -1, "product.createdAt": -1 } }, // Sắp xếp theo số lượt thích và thời gian tạo
-        { $limit: limit }
+        { $limit: limit },
       ]);
 
-      const products = favoriteAggregation.map(item => item.product);
+      const products = favoriteAggregation.map((item) => item.product);
       categoryFavorites[category.name] = products;
     }
 
@@ -45,18 +44,17 @@ exports.getMostFavoriteProductsByCategory = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Lỗi khi lấy sản phẩm yêu thích theo danh mục",
-      error: error.message
+      error: error.message,
     });
   }
 };
 
-
-
-
 exports.getFavorites = async (req, res) => {
   try {
     const customerId = req.user._id;
-    const favorites = await Favorite.findOne({ customer_id: customerId }).populate("favorites");
+    const favorites = await Favorite.findOne({
+      customer_id: customerId,
+    }).populate("favorites");
 
     if (!favorites) {
       return res.status(200).json({ favorites: [] });
@@ -67,7 +65,6 @@ exports.getFavorites = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi lấy danh sách yêu thích", error });
   }
 };
-
 
 //Thêm sản phẩm vào danh sách yêu thích
 exports.addFavorite = async (req, res) => {
@@ -86,14 +83,19 @@ exports.addFavorite = async (req, res) => {
     }
 
     // Tìm danh sách yêu thích của người dùng
-    let favoriteList = await Favorite.findOne({ customer_id: objectIdCustomerId });
+    let favoriteList = await Favorite.findOne({
+      customer_id: objectIdCustomerId,
+    });
 
     if (!favoriteList) {
-      favoriteList = new Favorite({ customer_id: objectIdCustomerId, favorites: [] });
+      favoriteList = new Favorite({
+        customer_id: objectIdCustomerId,
+        favorites: [],
+      });
     }
 
     // Chỉ thêm nếu sản phẩm chưa có trong danh sách
-    if (!favoriteList.favorites.some(id => id.equals(objectIdProductId))) {
+    if (!favoriteList.favorites.some((id) => id.equals(objectIdProductId))) {
       favoriteList.favorites.push(objectIdProductId);
       await favoriteList.save();
     }
@@ -101,7 +103,9 @@ exports.addFavorite = async (req, res) => {
     res.status(200).json(favoriteList);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Lỗi khi thêm vào danh sách yêu thích", error });
+    res
+      .status(500)
+      .json({ message: "Lỗi khi thêm vào danh sách yêu thích", error });
   }
 };
 
@@ -115,20 +119,35 @@ exports.removeFavorite = async (req, res) => {
     const objectIdCustomerId = new mongoose.Types.ObjectId(customerId);
     const objectIdProductId = new mongoose.Types.ObjectId(productId);
 
-    const favoriteList = await Favorite.findOne({ customer_id: objectIdCustomerId });
+    const favoriteList = await Favorite.findOne({
+      customer_id: objectIdCustomerId,
+    });
 
     if (!favoriteList) {
-      return res.status(404).json({ message: "Danh sách yêu thích không tồn tại" });
+      return res
+        .status(404)
+        .json({ message: "Danh sách yêu thích không tồn tại" });
     }
 
     // Xóa sản phẩm khỏi danh sách
-    favoriteList.favorites = favoriteList.favorites.filter(id => !id.equals(objectIdProductId));
+    favoriteList.favorites = favoriteList.favorites.filter(
+      (id) => !id.equals(objectIdProductId)
+    );
     await favoriteList.save();
 
-    res.status(200).json({ message: "Đã xóa sản phẩm khỏi danh sách yêu thích", favorites: favoriteList });
+    res
+      .status(200)
+      .json({
+        message: "Đã xóa sản phẩm khỏi danh sách yêu thích",
+        favorites: favoriteList,
+      });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Lỗi khi xóa sản phẩm khỏi danh sách yêu thích", error });
+    res
+      .status(500)
+      .json({
+        message: "Lỗi khi xóa sản phẩm khỏi danh sách yêu thích",
+        error,
+      });
   }
 };
-

@@ -12,7 +12,7 @@ exports.getNotifications = async (req, res) => {
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
+
     const total = await Notification.countDocuments(filter); // Đếm tổng số thông báo
     const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
