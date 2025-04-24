@@ -1,0 +1,14 @@
+{
+  "_id": {
+    "$oid": "661c00000000000000040101"
+  },
+  "orderId": {
+    "$oid": "661c00000000000000030001"
+  },
+  "carrier": "DHL",
+  "trackingNumber": "DHL123456789",
+  "status": "Shipped",
+  "estimatedArrival": {
+    "$date": "2024-04-25T00:00:00.000Z"
+  }
+}

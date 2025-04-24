@@ -1,0 +1,16 @@
+{
+    "_id": {
+      "$oid": "661c00000000000000010001"
+    },
+    "userId": {
+      "$oid": "661c00000000000000000001"
+    },
+    "fullName": "User One",
+    "phone": "123456789",
+    "street": "123 Main St",
+    "city": "City A",
+    "state": "State A",
+    "country": "Country A",
+    "isDefault": true
+  }
+

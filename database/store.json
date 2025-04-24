@@ -1,0 +1,11 @@
+{
+  "_id": {
+    "$oid": "661c000000000000000e0001"
+  },
+  "sellerId": {
+    "$oid": "661c00000000000000000002"
+  },
+  "storeName": "BestElectronics",
+  "description": "High quality electronics",
+  "bannerImageURL": "http://example.com/banner.jpg"
+}

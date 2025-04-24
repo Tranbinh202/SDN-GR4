@@ -1,0 +1,11 @@
+{
+  "_id": {
+    "$oid": "661c000000000000000d0001"
+  },
+  "sellerId": {
+    "$oid": "661c00000000000000000002"
+  },
+  "averageRating": 4.8,
+  "totalReviews": 150,
+  "positiveRate": 95.5
+}

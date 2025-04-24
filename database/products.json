@@ -1,0 +1,19 @@
+{
+  "_id": {
+    "$oid": "661c00000000000000020001"
+  },
+  "title": "Sample Product",
+  "description": "A great product.",
+  "price": 99.99,
+  "images": [
+    "http://example.com/product1.jpg"
+  ],
+  "categoryId": {
+    "$oid": "661c00000000000000060001"
+  },
+  "sellerId": {
+    "$oid": "661c00000000000000000002"
+  },
+  "isAuction": false,
+  "auctionEndTime": null
+}

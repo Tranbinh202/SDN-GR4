@@ -1,0 +1,14 @@
+{
+  "_id": {
+    "$oid": "661c000000000000000a0001"
+  },
+  "orderId": {
+    "$oid": "661c00000000000000030001"
+  },
+  "raisedBy": {
+    "$oid": "661c00000000000000000001"
+  },
+  "description": "Wrong item received",
+  "status": "Open",
+  "resolution": "Pending"
+}
