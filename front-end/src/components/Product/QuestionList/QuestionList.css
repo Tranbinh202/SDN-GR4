@@ -1,0 +1,104 @@
+.question-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Tiêu đề "Hỏi & Đáp" */
+.question-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Ô nhập câu hỏi */
+.question-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+/* Nút gửi câu hỏi */
+.question-send-btn {
+    background: red;
+    border: none;
+}
+
+/* Danh sách câu hỏi */
+.question-list {
+    margin-top: 10px;
+}
+
+/* Ô câu hỏi của User */
+.question-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px;
+    background: #fff;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Tên người dùng */
+.question-user {
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+/* Thời gian đăng */
+.question-time {
+    color: gray;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+/* Nội dung câu hỏi */
+.question-text {
+    font-size: 14px;
+    margin-top: 5px;
+    background: #f8f8f8;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Ô câu trả lời của Admin */
+.question-answer {
+    background: #f8f8f8;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    margin-left: 50px; /* Thụt vào để hiển thị dạng trả lời */
+}
+
+/* Tên Admin (Quản trị viên) */
+.answer-admin {
+    font-weight: bold;
+    color: red;
+    display: flex;
+    align-items: center;
+}
+
+/* Badge "QTV" */
+.answer-admin .qtv-badge {
+    background: red;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+
+/* Nội dung câu trả lời */
+.answer-text {
+    font-size: 14px;
+    color: #555;
+    margin-top: 5px;
+}
