@@ -1,39 +1,33 @@
-const mongoose = require("mongoose");
-const crypto = require("crypto");
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Role",
+  username: {
+    type: String,
     required: true,
+    unique: true,
+    trim: true
   },
-  phone: { type: String },
-  address: { type: String },
-  image: {
+  email: {
     type: String,
-    default: "https://example.com/default-avatar.png",
+    required: true,
+    unique: true,
+    trim: true
   },
-  isBanned: { type: Boolean, default: false },
-  isVerified: { type: Boolean, default: false }, // Trạng thái xác minh email
-  verificationToken: { type: String }, // Token xác minh email
-  resetPasswordToken: { type: String },
-  resetPasswordExpire: { type: Date },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-  googleId: {
+  password: {
     type: String,
-    sparse: true // Cho phép null và unique khi có giá trị
+    required: true
   },
-  loginType: {
+  role: {
     type: String,
-    enum: ['local', 'google'],
-    default: 'local'
+    enum: ['buyer', 'seller', 'admin'],
+    default: 'buyer'
   },
+  avatarURL: {
+    type: String,
+    trim: true
+  }
+}, {
+  timestamps: true
 });
 
-
-
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);
