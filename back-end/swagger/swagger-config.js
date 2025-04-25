@@ -18,8 +18,8 @@ const swaggerOptions = {
       {
         url:
           process.env.NODE_ENV === "production"
-            ? "https://gearup-api.com/api"
-            : "http://localhost:5000/api",
+            ? "https://gearup-api.com"
+            : "http://localhost:5000",
         description:
           process.env.NODE_ENV === "production"
             ? "Production Server"
