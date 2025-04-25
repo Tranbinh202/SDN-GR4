@@ -9,60 +9,75 @@ const {
   updateProduct,
   deleteProduct,
   getProductsByCategory,
-  getProductsByBrand,
-  getProductImage,  
   filterProduct,
   getSimilarProducts,
 } = require("../controllers/productController");
+const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
-// Cấu hình multer đơn giản
+// Cấu hình multer để upload ảnh
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: function (req, file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
     const mimetype = filetypes.test(file.mimetype);
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    
+
     if (mimetype && extname) {
       return cb(null, true);
     }
-    cb(new Error('Chỉ cho phép upload file ảnh!'));
-  }
+    cb(new Error("Chỉ cho phép upload file ảnh!"));
+  },
 });
 
-// Các route hiện có...
+// Lấy tất cả sản phẩm
+router.get("/", getAllProducts);
 
+// Lấy sản phẩm theo ID
+router.get("/:id", getProductById);
 
-// Route lấy tất cả sản phẩm
-router.get("/products", getAllProducts);
+// Lấy sản phẩm theo danh mục
+router.get("/category/:categoryId", getProductsByCategory);
 
-router.get("/products/:id", getProductById);
-router.get("/products/category/:categoryId", getProductsByCategory);
-router.get("/products/category/:categoryId/brand/:brand", getProductsByBrand);
-//lọc sản phẩm
-router.get("/products/filter/search", filterProduct);
-// Thêm sản phẩm 
-router.post("/products", upload.fields([
-  { name: 'mainImage', maxCount: 1 },
-  { name: 'additionalImages', maxCount: 4 }
-]), createProduct);
-router.put("/products/:id", upload.fields([
-  { name: 'mainImage', maxCount: 1 },
-  { name: 'additionalImages', maxCount: 4 }
-]), updateProduct);
-router.delete("/products/:id", deleteProduct);
+// Lọc sản phẩm
+router.get("/filter", filterProduct);
 
-// Route trả về ảnh của sản phẩm theo id
-router.get("/products/:id/image", getProductImage);
-router.get("/products/similar/:productId", getSimilarProducts);
+// Lấy sản phẩm tương tự
+router.get("/similar/:productId", getSimilarProducts);
+
+// Thêm sản phẩm mới (chỉ admin)
+router.post(
+  "/",
+  authMiddleware,
+  adminMiddleware,
+  upload.fields([
+    { name: "mainImage", maxCount: 1 },
+    { name: "additionalImages", maxCount: 4 },
+  ]),
+  createProduct
+);
+
+// Cập nhật sản phẩm (chỉ admin)
+router.put(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  upload.fields([
+    { name: "mainImage", maxCount: 1 },
+    { name: "additionalImages", maxCount: 4 },
+  ]),
+  updateProduct
+);
+
+// Xóa sản phẩm (chỉ admin)
+router.delete("/:id", authMiddleware, adminMiddleware, deleteProduct);
 
 module.exports = router;

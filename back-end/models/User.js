@@ -25,6 +25,14 @@ const userSchema = new mongoose.Schema({
   avatarURL: {
     type: String,
     trim: true
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  isBanned: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

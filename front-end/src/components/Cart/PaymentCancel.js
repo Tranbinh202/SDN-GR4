@@ -11,28 +11,28 @@ const PaymentCancel = () => {
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const orderCode = queryParams.get("orderCode");
+    const orderId = queryParams.get("orderId");
     const status = queryParams.get("status");
     const transactionId = queryParams.get("transactionId");
 
-    // Gọi API để cập nhật trạng thái đơn hàng thất bại
+    // Gọi API để cập nhật trạng thái thanh toán thất bại
     const updatePaymentStatus = async () => {
       try {
         const response = await axios.post(
-          "http://localhost:9999/api/payment/payos-callback",
+          "http://localhost:9999/api/payment/webhook",
           {
-            orderCode,
+            orderId,
             status,
-            transactionId
+            transactionId,
           }
         );
         setMessage(response.data.message);
       } catch (error) {
-        setError(error.response?.data?.message || "Có lỗi xảy ra");
+        setError(error.response?.data?.message || "Có lỗi xảy ra khi cập nhật trạng thái thanh toán.");
       }
     };
 
-    if (orderCode && status) {
+    if (orderId && status) {
       updatePaymentStatus();
     }
   }, [location]);

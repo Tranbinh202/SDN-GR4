@@ -1,34 +1,34 @@
-const DiscountCode = require("../models/DiscountCode");
+const Coupon = require("../models/Coupon");
 
 // Thêm mã giảm giá mới
-exports.addDiscount = async (req, res) => {
+exports.addCoupon = async (req, res) => {
     try {
-        const discount = new DiscountCode(req.body);
-        await discount.save();
-        res.status(201).json({ message: "Mã giảm giá đã được thêm!", discount });
+        const coupon = new Coupon(req.body);
+        await coupon.save();
+        res.status(201).json({ message: "Mã giảm giá đã được thêm!", coupon });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
 
 // Cập nhật mã giảm giá
-exports.updateDiscount = async (req, res) => {
+exports.updateCoupon = async (req, res) => {
     try {
         const { id } = req.params;
-        const updatedDiscount = await DiscountCode.findByIdAndUpdate(id, req.body, { new: true });
-        if (!updatedDiscount) return res.status(404).json({ message: "Không tìm thấy mã giảm giá!" });
-        res.status(200).json({ message: "Cập nhật thành công!", updatedDiscount });
+        const updatedCoupon = await Coupon.findByIdAndUpdate(id, req.body, { new: true });
+        if (!updatedCoupon) return res.status(404).json({ message: "Không tìm thấy mã giảm giá!" });
+        res.status(200).json({ message: "Cập nhật thành công!", updatedCoupon });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
 
 // Xóa mã giảm giá
-exports.deleteDiscount = async (req, res) => {
+exports.deleteCoupon = async (req, res) => {
     try {
         const { id } = req.params;
-        const deletedDiscount = await DiscountCode.findByIdAndDelete(id);
-        if (!deletedDiscount) return res.status(404).json({ message: "Không tìm thấy mã giảm giá!" });
+        const deletedCoupon = await Coupon.findByIdAndDelete(id);
+        if (!deletedCoupon) return res.status(404).json({ message: "Không tìm thấy mã giảm giá!" });
         res.status(200).json({ message: "Xóa mã giảm giá thành công!" });
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -36,10 +36,43 @@ exports.deleteDiscount = async (req, res) => {
 };
 
 // Lấy danh sách mã giảm giá
-exports.getAllDiscounts = async (req, res) => {
+exports.getAllCoupons = async (req, res) => {
     try {
-        const discounts = await DiscountCode.find();
-        res.status(200).json(discounts);
+        const coupons = await Coupon.find();
+        res.status(200).json(coupons);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Lấy thông tin mã giảm giá theo ID
+exports.getCouponById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const coupon = await Coupon.findById(id);
+        if (!coupon) return res.status(404).json({ message: "Không tìm thấy mã giảm giá!" });
+        res.status(200).json(coupon);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Kiểm tra mã giảm giá hợp lệ
+exports.validateCoupon = async (req, res) => {
+    try {
+        const { code, productId } = req.body;
+
+        const coupon = await Coupon.findOne({ code, productId });
+        if (!coupon) {
+            return res.status(404).json({ message: "Mã giảm giá không hợp lệ!" });
+        }
+
+        const currentDate = new Date();
+        if (currentDate < coupon.startDate || currentDate > coupon.endDate) {
+            return res.status(400).json({ message: "Mã giảm giá đã hết hạn!" });
+        }
+
+        res.status(200).json({ message: "Mã giảm giá hợp lệ!", coupon });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

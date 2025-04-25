@@ -49,7 +49,7 @@ const Checkout = () => {
 
       if (response.data) {
         setFormData({
-          fullName: response.data.name || "",
+          fullName: response.data.username || "",
           email: response.data.email || "",
           phone: response.data.phone || "",
           address: response.data.address || "",
@@ -64,14 +64,14 @@ const Checkout = () => {
   const fetchCartItems = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:9999/api/checkout/cart",
+        "http://localhost:9999/api/cart",
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setCartItems(response.data.cart || []);
+      setCartItems(response.data.items || []);
     } catch (error) {
       console.error("Lỗi khi lấy giỏ hàng:", error);
     }
@@ -92,8 +92,8 @@ const Checkout = () => {
   const applyDiscount = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:9999/api/checkout/discount",
-        { discountCode },
+        "http://localhost:9999/api/discount/validate",
+        { code: discountCode },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -126,7 +126,7 @@ const Checkout = () => {
     try {
       if (paymentMethod === "cash") {
         const response = await axios.post(
-          "http://localhost:9999/api/checkout/complete",
+          "http://localhost:9999/api/orders",
           {
             discountCode,
             paymentMethod,
@@ -143,7 +143,7 @@ const Checkout = () => {
       } else {
         // Chuyển hướng tới PayOS nếu chọn chuyển khoản
         const response = await axios.post(
-          "http://localhost:9999/api/checkout/complete",
+          "http://localhost:9999/api/orders",
           {
             discountCode,
             paymentMethod,
@@ -174,7 +174,7 @@ const Checkout = () => {
       await axios.put(
         "http://localhost:9999/api/users/profile",
         {
-          name: formData.fullName,
+          username: formData.fullName,
           phone: formData.phone,
           address: formData.address
         },
@@ -295,29 +295,16 @@ const Checkout = () => {
             <div className="order-summary">
               <h3>Tóm tắt đơn hàng</h3>
               {cartItems.map((item) => (
-                <div className="order-item" key={item.product_id}>
+                <div className="order-item" key={item.productId}>
                   <div className="item-image">
                     <img src={item.image} alt={item.name} />
                   </div>
                   <div className="item-details">
-  <h4>{item.name} ({item.brand})</h4>
-  <p className="selected-color">
-    <span className="color-label">Màu sắc:</span>
-    {item.selected_color || item.color || 'Không xác định'}
-  </p>
-  {/* Hiển thị thông tin biến thể */}
-  {item.variant && (
-    <div className="variant-info">
-      {item.variant.storage && <p>Dung lượng: {item.variant.storage}</p>}
-      {item.variant.length && <p>Chiều dài: {item.variant.length}</p>}
-      {item.variant.material && <p>Chất liệu: {item.variant.material}</p>}
-      {item.variant.charger && <p>Loại sạc: {item.variant.charger}</p>}
-    </div>
-  )}
-  <p>Giá: {item.price.toLocaleString()} VND</p>
-  <p>Số lượng: {item.quantity}</p>
-  <p>Tổng: {(item.price * item.quantity).toLocaleString()} VND</p>
-</div>
+                    <h4>{item.name}</h4>
+                    <p>Giá: {item.price.toLocaleString()} VND</p>
+                    <p>Số lượng: {item.quantity}</p>
+                    <p>Tổng: {(item.price * item.quantity).toLocaleString()} VND</p>
+                  </div>
                 </div>
               ))}
 

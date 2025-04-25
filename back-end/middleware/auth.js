@@ -38,7 +38,13 @@ exports.authMiddleware = async (req, res, next) => {
     }
 
     // Gán user vào req để sử dụng sau này
-    req.user = user;
+    req.user = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+    };
     next();
   } catch (err) {
     console.error("Lỗi xác thực:", err);
@@ -51,9 +57,7 @@ exports.checkRole = (roles) => {
   return (req, res, next) => {
     // Giả sử req.user đã được gán bởi authMiddleware
     const userRole = req.user.role;
-    // Nếu userRole không phải là chuỗi, chuyển đổi thành chuỗi (hoặc lấy thuộc tính 'role' nếu đã populate)
-    const roleStr = typeof userRole === "string" ? userRole : userRole?.role;
-    if (!roles.includes(roleStr)) {
+    if (!roles.includes(userRole)) {
       return res.status(403).json({ message: "Bạn không có quyền truy cập" });
     }
     next();

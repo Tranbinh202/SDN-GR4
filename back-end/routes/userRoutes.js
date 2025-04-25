@@ -15,34 +15,42 @@ const {
   updateUserRole,
   googleLogin,
 } = require("../controllers/userController");
-const { authMiddleware } = require("../middleware/auth");
+const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 
+// Đăng ký và đăng nhập
 router.post("/register", register);
 router.post("/login", login);
+router.post("/google-login", googleLogin);
+
+// Đăng xuất
 router.post("/logout", authMiddleware, logout);
 
-// Chỉ admin (hoặc những người đã đăng nhập với quyền phù hợp) sẽ truy cập getAllUsers
-router.get("/", authMiddleware, getAllUsers);
+// Lấy danh sách tất cả người dùng (chỉ admin)
+router.get("/", authMiddleware, adminMiddleware, getAllUsers);
 
-// 🚀 Đảm bảo route /profile được đặt trước route /:id
+// Lấy và cập nhật thông tin cá nhân
 router.get("/profile", authMiddleware, getUserProfile);
 router.put("/profile", authMiddleware, updateUserProfile);
 
+// Đổi mật khẩu
 router.put("/change-password", authMiddleware, changePassword);
+
+// Quên mật khẩu và đặt lại mật khẩu
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
+
+// Xác minh email
 router.post("/verify-email/:token", verifyEmail);
 
-// Block/Unblock user (chỉ cần authMiddleware nếu bạn đã kiểm tra quyền khi đăng nhập)
-router.patch('/block/:userId', authMiddleware, blockUser);
+// Chặn hoặc bỏ chặn người dùng (chỉ admin)
+router.patch("/block/:userId", authMiddleware, adminMiddleware, blockUser);
 
-// Cập nhật role cho user
-router.patch('/role/:userId', authMiddleware, updateUserRole);
+// Cập nhật vai trò người dùng (chỉ admin)
+router.patch("/role/:userId", authMiddleware, adminMiddleware, updateUserRole);
 
-// 🚀 Đặt route /:id ở cuối cùng để không bị xung đột với route /profile
-router.get("/:id", getUserById);
-router.post('/google-login', googleLogin);
+// Lấy thông tin người dùng theo ID
+router.get("/:id", authMiddleware, getUserById);
 
 module.exports = router;
