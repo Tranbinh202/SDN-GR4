@@ -1,9 +1,10 @@
-const Order = require("./models/Order");
-const Notification = require("./models/Notification");
+const Order = require("../models/Orders");
+const Notification = require("../models/Notification");
 
 let io;
+// Lưu trữ các timeout để có thể hủy nếu cần
+const orderTimeouts = new Map();
 
-// Khởi tạo socket.io server
 const initSocket = (server) => {
   io = require("socket.io")(server, {
     cors: {
@@ -12,17 +13,14 @@ const initSocket = (server) => {
     },
   });
 
-  // Xử lý kết nối socket
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    // Theo dõi đơn hàng cụ thể
     socket.on("joinOrderRoom", (orderId) => {
       socket.join(`order_${orderId}`);
       console.log(`User ${socket.id} joined order room: order_${orderId}`);
     });
 
-    // Theo dõi tất cả đơn hàng của người dùng
     socket.on("joinUserOrdersRoom", (userId) => {
       socket.join(`user_orders_${userId}`);
       console.log(
@@ -30,7 +28,6 @@ const initSocket = (server) => {
       );
     });
 
-    // Ngắt kết nối
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.id}`);
     });
@@ -40,24 +37,22 @@ const initSocket = (server) => {
   return io;
 };
 
-// Hủy đơn hàng sau khi hết thời gian thanh toán
 const cancelOrderAfterTimeout = async (orderId, userId) => {
   try {
-    // Kiểm tra đơn hàng có tồn tại không
+    // Xóa timeout khỏi danh sách theo dõi
+    orderTimeouts.delete(orderId);
+
     const order = await Order.findById(orderId);
     if (!order) {
       console.log(`Order ${orderId} not found for cancellation`);
       return;
     }
-
-    // Kiểm tra nếu đơn hàng vẫn đang chờ thanh toán
     if (
       order.paymentStatus === "Chờ thanh toán" &&
       (order.status === "Đang xử lý" || order.status === "Đã xác nhận")
     ) {
       console.log(`Cancelling order ${orderId} due to payment timeout`);
 
-      // Cập nhật trạng thái đơn hàng
       order.status = "Đã hủy";
       order.paymentStatus = "Thanh toán thất bại";
       order.cancelReason = "Hết thời gian thanh toán";
@@ -66,7 +61,6 @@ const cancelOrderAfterTimeout = async (orderId, userId) => {
 
       await order.save();
 
-      // Tạo thông báo cho người dùng
       const notification = new Notification({
         user: userId,
         type: "order",
@@ -76,17 +70,13 @@ const cancelOrderAfterTimeout = async (orderId, userId) => {
       });
       await notification.save();
 
-      // Thông báo qua socket.io
       if (io) {
-        // Thông báo cho phòng của đơn hàng cụ thể
         io.to(`order_${orderId}`).emit("orderCancelled", {
           orderId: orderId,
           orderCode: order.order_code,
           reason: "Hết thời gian thanh toán",
           timestamp: new Date(),
         });
-
-        // Thông báo cho phòng của người dùng
         io.to(`user_orders_${userId}`).emit("orderStatusChanged", {
           orderId: orderId,
           orderCode: order.order_code,
@@ -109,17 +99,64 @@ const cancelOrderAfterTimeout = async (orderId, userId) => {
   }
 };
 
-// Set up timeout for order cancellation
-const setOrderPaymentTimeout = (orderId, userId, timeoutMs = 60000) => {
+const setOrderPaymentTimeout = (orderId, userId, timeoutMs = 900000) => {
+  // 15 phút (900000ms)
   console.log(`Setting payment timeout for order ${orderId}: ${timeoutMs}ms`);
 
-  setTimeout(() => {
+  // Hủy timeout cũ nếu đã tồn tại
+  clearOrderPaymentTimeout(orderId);
+
+  // Tạo timeout mới
+  const timeoutId = setTimeout(() => {
     cancelOrderAfterTimeout(orderId, userId);
   }, timeoutMs);
+
+  // Lưu timeout ID để có thể hủy nếu cần
+  orderTimeouts.set(orderId, timeoutId);
+};
+
+/**
+ * Hủy timeout thanh toán đơn hàng
+ * @param {string} orderId - ID của đơn hàng
+ */
+const clearOrderPaymentTimeout = (orderId) => {
+  const existingTimeout = orderTimeouts.get(orderId);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+    orderTimeouts.delete(orderId);
+    console.log(`Cleared payment timeout for order ${orderId}`);
+  }
+};
+
+/**
+ * Phát thông báo mới cho người dùng
+ * @param {string} userId - ID của người dùng nhận thông báo
+ * @param {Object} notification - Thông tin thông báo
+ */
+const emitNotification = (userId, notification) => {
+  if (io) {
+    io.to(`user_${userId}`).emit("notification", notification);
+  }
+};
+
+/**
+ * Phát sự kiện cập nhật trạng thái đơn hàng
+ * @param {string} orderId - ID của đơn hàng
+ * @param {string} userId - ID của người dùng
+ * @param {Object} statusData - Dữ liệu trạng thái mới
+ */
+const emitOrderStatusUpdate = (orderId, userId, statusData) => {
+  if (io) {
+    io.to(`order_${orderId}`).emit("orderStatusChanged", statusData);
+    io.to(`user_orders_${userId}`).emit("orderStatusChanged", statusData);
+  }
 };
 
 module.exports = {
   initSocket,
   setOrderPaymentTimeout,
+  clearOrderPaymentTimeout,
+  emitNotification,
+  emitOrderStatusUpdate,
   getIO: () => io,
 };

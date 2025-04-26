@@ -11,6 +11,7 @@ const fs = require("fs");
 const shippingRoutes = require("./routes/shippingRoutes");
 const productRouter = require("./routes/productRouter");
 const orderRoutes = require("./routes/orderRoutes");
+const socketManager = require("./socket/socketManager");
 
 // const userRoutes = require("./routes/userRoutes");
 const { setupSwagger } = require("./swagger/swagger-config");
@@ -38,7 +39,22 @@ app.use("/api/products", productRouter);
 app.use("/api/orders", orderRoutes);
 
 const PORT = process.env.PORT || 5000;
+const server = http.createServer(app);
 
+socketManager.initSocket(server);
+
+const OrderController = require("./controllers/orderController");
+setInterval(async () => {
+  try {
+    console.log("Đang kiểm tra trạng thái đơn hàng...");
+    const result = await OrderController.checkAndUpdateOrderStatus();
+    if (result.updatedCount > 0) {
+      console.log(`Đã cập nhật ${result.updatedCount} đơn hàng`);
+    }
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra trạng thái đơn hàng:", error);
+  }
+}, 30000);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
