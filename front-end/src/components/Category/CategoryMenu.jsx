@@ -13,7 +13,7 @@ const CategoryMenu = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:9999/api/categories");
+        const response = await axios.get("http://localhost:5000/api/categories");
         setCategories(response.data);
       } catch (error) {
         console.error("Lỗi khi lấy danh mục:", error);

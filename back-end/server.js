@@ -10,7 +10,6 @@ const path = require("path");
 const fs = require("fs");
 const shippingRoutes = require("./routes/shippingRoutes");
 const productRouter = require("./routes/productRouter");
-const orderRoutes = require("./routes/orderRoutes");
 
 // const userRoutes = require("./routes/userRoutes");
 const { setupSwagger } = require("./swagger/swagger-config");
@@ -35,7 +34,6 @@ setupSwagger(app);
 
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/products", productRouter);
-app.use("/api/orders", orderRoutes);
 
 const PORT = process.env.PORT || 5000;
 

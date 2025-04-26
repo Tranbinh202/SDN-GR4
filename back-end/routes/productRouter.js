@@ -37,7 +37,7 @@ const upload = multer({
 });
 
 // Lấy tất cả sản phẩm
-router.get("/list", getAllProducts);
+router.get("/", getAllProducts);
 
 // Lấy sản phẩm theo ID
 router.get("/:id", getProductById);

@@ -116,52 +116,34 @@ const Checkout = () => {
   // Xử lý submit đơn hàng
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     // Kiểm tra thông tin người nhận trước khi thanh toán
     if (!formData.fullName || !formData.phone || !formData.address) {
       setError("Vui lòng điền đầy đủ thông tin người nhận (Họ tên, Số điện thoại, Địa chỉ)");
       return;
     }
-
     try {
-      if (paymentMethod === "cash") {
-        const response = await axios.post(
-          "http://localhost:9999/api/checkout/complete",
-          {
-            discountCode,
-            paymentMethod,
+      const response = await axios.post(
+        "http://localhost:5000/api/checkout",
+        {
+          fullName: formData.fullName,
+          phone: formData.phone,
+          address: formData.address,
+          paymentMethod: paymentMethod === "bank_transfer" ? "payos" : "cash"
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        setSuccess("Đơn hàng đã được đặt thành công!");
-        navigate('/order-processing', { state: { order: response.data.order } });
-      } else {
-        // Chuyển hướng tới PayOS nếu chọn chuyển khoản
-        const response = await axios.post(
-          "http://localhost:9999/api/checkout/complete",
-          {
-            discountCode,
-            paymentMethod,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.data.paymentUrl) {
-          window.location.href = response.data.paymentUrl;
-        } else {
-          setError("Không thể tạo liên kết thanh toán");
         }
+      );
+      if (paymentMethod === "bank_transfer" && response.data.paymentUrl) {
+        window.location.href = response.data.paymentUrl;
+      } else {
+        setSuccess("Đơn hàng đã được đặt thành công!");
+        localStorage.removeItem("cart");
+        navigate('/order-processing', { state: { order: response.data.order } });
       }
     } catch (error) {
-      console.error("Lỗi khi đặt hàng:", error);
       setError(
         error.response?.data?.message || "Có lỗi xảy ra khi xử lý đơn hàng"
       );
