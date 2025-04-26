@@ -5,26 +5,23 @@ const { authMiddleware } = require("../middleware/auth");
 
 // Tạo vận đơn mới cho đơn hàng
 router.post(
-  "/shipping/:orderId",
+  "/create/:orderId",
   authMiddleware,
   shippingController.createShipment
 );
 
 // Lấy thông tin vận chuyển theo mã vận đơn
 router.get(
-  "/shipping/tracking/:trackingNumber",
+  "/tracking/:trackingNumber",
   shippingController.getShipmentByTracking
 );
 
 // Lấy vị trí hiện tại của shipper
-router.get(
-  "/shipping/location/:trackingNumber",
-  shippingController.getShipperLocation
-);
+router.get("/location/:trackingNumber", shippingController.getShipperLocation);
 
 // Cập nhật trạng thái vận chuyển (thủ công)
 router.put(
-  "/shipping/:trackingNumber",
+  "/:trackingNumber",
   authMiddleware,
   shippingController.updateShipmentStatus
 );
