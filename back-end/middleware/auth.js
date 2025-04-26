@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const User = require("../models/User");
 
-// Xác thực người dùng
+// Middleware xác thực người dùng
 exports.authMiddleware = async (req, res, next) => {
   try {
     // Lấy token từ header
@@ -46,16 +46,34 @@ exports.authMiddleware = async (req, res, next) => {
   }
 };
 
-// Kiểm tra quyền truy cập dựa trên vai trò
+// Middleware kiểm tra quyền truy cập dựa trên vai trò
 exports.checkRole = (roles) => {
   return (req, res, next) => {
-    // Giả sử req.user đã được gán bởi authMiddleware
-    const userRole = req.user.role;
-    // Nếu userRole không phải là chuỗi, chuyển đổi thành chuỗi (hoặc lấy thuộc tính 'role' nếu đã populate)
-    const roleStr = typeof userRole === "string" ? userRole : userRole?.role;
-    if (!roles.includes(roleStr)) {
+    try {
+      // Giả sử req.user đã được gán bởi authMiddleware
+      const userRole = req.user.role;
+      // Nếu userRole không phải là chuỗi, chuyển đổi thành chuỗi (hoặc lấy thuộc tính 'role' nếu đã populate)
+      const roleStr = typeof userRole === "string" ? userRole : userRole?.role;
+      if (!roles.includes(roleStr)) {
+        return res.status(403).json({ message: "Bạn không có quyền truy cập" });
+      }
+      next();
+    } catch (err) {
+      console.error("Lỗi kiểm tra vai trò:", err);
+      return res.status(500).json({ message: "Lỗi máy chủ khi kiểm tra vai trò" });
+    }
+  };
+};
+
+// Middleware kiểm tra quyền admin
+exports.adminMiddleware = (req, res, next) => {
+  try {
+    if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Bạn không có quyền truy cập" });
     }
     next();
-  };
+  } catch (err) {
+    console.error("Lỗi kiểm tra quyền admin:", err);
+    return res.status(500).json({ message: "Lỗi máy chủ khi kiểm tra quyền admin" });
+  }
 };

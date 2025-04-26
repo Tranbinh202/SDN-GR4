@@ -5,24 +5,26 @@ const Category = require("../models/Categories");
 // Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1; // Phân trang
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
-
-        const totalProducts = await Product.countDocuments();
         const products = await Product.find()
-            .populate("categoryId", "name") // Lấy tên danh mục
-            .populate("sellerId", "username email") // Lấy thông tin người bán
-            .skip(skip)
-            .limit(limit)
+            .populate("categoryId", "_id") // Lấy ID danh mục
+            .populate("sellerId", "_id") // Lấy ID người bán
             .sort({ createdAt: -1 }); // Sắp xếp theo thời gian tạo mới nhất
+
+        // Chuyển đổi dữ liệu sản phẩm sang định dạng yêu cầu
+        const formattedProducts = products.map(product => ({
+            title: product.title,
+            description: product.description,
+            price: product.price,
+            images: product.images,
+            categoryId: { $oid: product.categoryId?._id.toString() },
+            sellerId: { $oid: product.sellerId?._id.toString() },
+            isAuction: product.isAuction,
+            auctionEndTime: product.auctionEndTime,
+        }));
 
         res.json({
             success: true,
-            products,
-            currentPage: page,
-            totalPages: Math.ceil(totalProducts / limit),
-            totalProducts,
+            products: formattedProducts,
         });
     } catch (error) {
         console.error("Error in getAllProducts:", error);
