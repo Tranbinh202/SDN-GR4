@@ -8,6 +8,10 @@ import LoginPage from "./pages/Form/LoginPage";
 import RegisterPage from "./pages/Form/RegisterPage";
 import CartPage from "./pages/Cart/CartPage";
 import ProductListByCategory from "./pages/ProductsbyCategory/ProducsList";
+import VerifyOrder from "./pages/Cart/VerifyOrder";
+import PaymentSuccess from "./components/Cart/PaymentSuccess";
+import PaymentCancel from "./components/Cart/PaymentCancel";
+import OrderProcessing from "./components/Order/OrderProcessing";
 
 const App = () => {
   return (
@@ -19,6 +23,10 @@ const App = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/category/:categoryId" element={<ProductListByCategory />} />
+        <Route path="/checkout" element={<VerifyOrder />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-cancel" element={<PaymentCancel />} />
+        <Route path="/order-processing" element={<OrderProcessing />} />
       </Routes>
     </Router>
   );

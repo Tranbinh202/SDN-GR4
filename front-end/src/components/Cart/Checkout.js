@@ -39,7 +39,7 @@ const Checkout = () => {
   const fetchUserInfo = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:9999/api/users/profile",
+        "http://localhost:5000/api/users/profile",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -52,7 +52,9 @@ const Checkout = () => {
           fullName: response.data.name || "",
           email: response.data.email || "",
           phone: response.data.phone || "",
-          address: response.data.address || "",
+          address: (typeof response.data.address === 'object' && response.data.address !== null)
+            ? response.data.address.street || ""
+            : response.data.address || "",
         });
       }
     } catch (error) {
@@ -60,21 +62,10 @@ const Checkout = () => {
     }
   };
 
-  // Lấy giỏ hàng từ API
-  const fetchCartItems = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:9999/api/checkout/cart",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setCartItems(response.data.cart || []);
-    } catch (error) {
-      console.error("Lỗi khi lấy giỏ hàng:", error);
-    }
+  // Lấy giỏ hàng từ localStorage (đồng bộ với Cart)
+  const fetchCartItems = () => {
+    const cartData = JSON.parse(localStorage.getItem("cart")) || [];
+    setCartItems(cartData);
   };
 
   // Xử lý thay đổi dữ liệu trong form
@@ -154,11 +145,11 @@ const Checkout = () => {
   const handleSaveInfo = async () => {
     try {
       await axios.put(
-        "http://localhost:9999/api/users/profile",
+        "http://localhost:5000/api/users/profile",
         {
           name: formData.fullName,
           phone: formData.phone,
-          address: formData.address
+          address: { street: formData.address }
         },
         {
           headers: {
