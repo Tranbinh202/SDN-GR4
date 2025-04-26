@@ -11,7 +11,8 @@ const fs = require("fs");
 const shippingRoutes = require("./routes/shippingRoutes");
 const productRouter = require("./routes/productRouter");
 const orderRoutes = require("./routes/orderRoutes");
-
+const authRoutes = require("./routes/authRoutes");
+const checkoutRoutes = require("./routes/checkoutRoutes");
 // const userRoutes = require("./routes/userRoutes");
 const { setupSwagger } = require("./swagger/swagger-config");
 dotenv.config();
