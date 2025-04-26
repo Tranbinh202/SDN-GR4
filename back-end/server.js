@@ -11,7 +11,6 @@ const fs = require("fs");
 const shippingRoutes = require("./routes/shippingRoutes");
 const productRouter = require("./routes/productRouter");
 const orderRoutes = require("./routes/orderRoutes");
-const socketManager = require("./socket/socketManager");
 
 // const userRoutes = require("./routes/userRoutes");
 const { setupSwagger } = require("./swagger/swagger-config");
@@ -20,7 +19,7 @@ connectDB();
 
 const app = express();
 
-app.use(cors({ origin: "*" }));
+app.use(cors());
 app.use(bodyParser.json());
 
 if (!fs.existsSync("uploads")) {
@@ -36,7 +35,8 @@ setupSwagger(app);
 
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/products", productRouter);
-app.use("/api/orders", orderRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api", checkoutRoutes);
 
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);

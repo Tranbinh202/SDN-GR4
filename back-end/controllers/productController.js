@@ -6,32 +6,25 @@ const Category = require("../models/Categories");
 const getAllProducts = async (req, res) => {
     try {
         const products = await Product.find()
-            .populate("categoryId", "_id") // Lấy ID danh mục
-            .populate("sellerId", "_id") // Lấy ID người bán
-            .sort({ createdAt: -1 }); // Sắp xếp theo thời gian tạo mới nhất
+            .select('title price images')
+            .sort({ createdAt: -1 });
 
-        // Chuyển đổi dữ liệu sản phẩm sang định dạng yêu cầu
         const formattedProducts = products.map(product => ({
-            title: product.title,
-            description: product.description,
+            _id: product._id,
+            name: product.title,
             price: product.price,
-            images: product.images,
-            categoryId: { $oid: product.categoryId?._id.toString() },
-            sellerId: { $oid: product.sellerId?._id.toString() },
-            isAuction: product.isAuction,
-            auctionEndTime: product.auctionEndTime,
+            images: product.images
         }));
 
         res.json({
-            success: true,
-            products: formattedProducts,
+            products: formattedProducts
         });
     } catch (error) {
         console.error("Error in getAllProducts:", error);
         res.status(500).json({
             success: false,
             message: "Lỗi khi lấy danh sách sản phẩm",
-            error: error.message,
+            error: error.message
         });
     }
 };
