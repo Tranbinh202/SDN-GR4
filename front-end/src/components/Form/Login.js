@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { GoogleLogin } from '@react-oauth/google';
 import "./AuthForm.css";
 
 const Login = () => {
@@ -11,21 +10,6 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
-  // Hàm xử lý điều hướng dựa trên role
-  const handleNavigation = (role) => {
-    if (role === "admin") {
-      navigate("/admin");
-    } else if (role === "manager") {
-      navigate("/manager");
-    } else if (role === "sale") {
-      navigate("/sale");
-    } else if (role === "shipper") {
-      navigate("/shipper");
-    } else {
-      navigate("/");
-    }
-  };
-
   // Xử lý đăng nhập thông thường
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,54 +17,17 @@ const Login = () => {
     setSuccessMessage("");
 
     try {
-      const response = await axios.post("http://localhost:9999/api/users/login", { email, password });
+      const response = await axios.post("http://localhost:5000/api/auth/login", { email, password });
       const { token, user } = response.data;
 
-      if (!user.isVerified) {
-        setError("Tài khoản chưa được xác minh. Vui lòng kiểm tra email.");
-        return;
-      }
-
-      if (user.isBanned) {
-        setError("Tài khoản của bạn đã bị block. Vui lòng liên hệ admin để được hỗ trợ.");
-        return;
-      }
-
+      // Lưu token và user vào localStorage nếu cần
       localStorage.setItem("authToken", token);
       localStorage.setItem("user", JSON.stringify(user));
-      // Kích hoạt sự kiện cập nhật UI ngay lập tức
-      window.dispatchEvent(new Event("userUpdate"));
       setSuccessMessage(`Chào mừng, ${user.name}!`);
 
-      const role = user.role?.role?.toLowerCase() || "customer";
-      setTimeout(() => handleNavigation(role), 1000);
+      setTimeout(() => navigate("/"), 1000);
     } catch (err) {
-      console.error("Login Error:", err);
       setError(err.response?.data?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
-    }
-  };
-
-  // Xử lý đăng nhập Google
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const response = await axios.post("http://localhost:9999/api/users/google-login", {
-        idToken: credentialResponse.credential
-      });
-
-      const { token, user } = response.data;
-
-      localStorage.setItem("authToken", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      // Kích hoạt sự kiện cập nhật UI ngay lập tức
-      window.dispatchEvent(new Event("userUpdate"));
-      setSuccessMessage(`Chào mừng, ${user.name}!`);
-
-      const role = user.role?.role?.toLowerCase() || "customer";
-
-      setTimeout(() => handleNavigation(role), 1000);
-    } catch (error) {
-      console.error("Google Login Error:", error);
-      setError("Đăng nhập Google thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -111,16 +58,6 @@ const Login = () => {
         {successMessage && <div className="success-message">{successMessage}</div>}
 
         <button type="submit" className="auth-button">Đăng nhập</button>
-
-        <div className="google-login-container">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => {
-              setError("Đăng nhập Google thất bại. Vui lòng thử lại.");
-            }}
-            useOneTap
-          />
-        </div>
 
         <div className="auth-links">
           <Link to="/forgot-password" className="forgot-password-link">Quên mật khẩu?</Link>

@@ -3,9 +3,7 @@ import { useParams } from 'react-router-dom';
 import Header from "../../components/Common/Header";
 import Footer from "../../components/Common/Footer";
 import ProductDetail from '../../components/Product/ProductDetail';
-import Review from "../../components/Product/Review/Review";
 import SimilarProducts from "../../components/Product/ListsameProduct/SimilarProducts";
-import QuestionList from "../../components/Product/QuestionList/QuestionList";
 
 function Detail() {
   const { id } = useParams(); // Lấy productId từ URL
@@ -24,8 +22,6 @@ function Detail() {
    <Header />
    <ProductDetail productId={id} />
    <SimilarProducts productId={id} />
-      <Review productId={id} />
-      <QuestionList productId={id} />
    <Footer />
    </>
   )
