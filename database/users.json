@@ -1,20 +1,22 @@
-{
-  "_id": {
-    "$oid": "661c00000000000000000001"
+[
+  {
+    "_id": {
+      "$oid": "661c00000000000000000001"
+    },
+    "username": "user1",
+    "email": "user1@example.com",
+    "password": "hashed_password",
+    "role": "buyer",
+    "avatarURL": "http://example.com/avatar1.png"
   },
-  "username": "user1",
-  "email": "user1@example.com",
-  "password": "hashed_password",
-  "role": "buyer",
-  "avatarURL": "http://example.com/avatar1.png"
-},
-{
-  "_id": {
-    "$oid": "661c00000000000000000002"
-  },
-  "username": "user2",
-  "email": "user2@example.com",
-  "password": "hashed_password",
-  "role": "seller",
-  "avatarURL": "http://example.com/avatar2.png"
-}
+  {
+    "_id": {
+      "$oid": "661c00000000000000000002"
+    },
+    "username": "user2",
+    "email": "user2@example.com",
+    "password": "hashed_password",
+    "role": "seller",
+    "avatarURL": "http://example.com/avatar2.png"
+  }
+]
