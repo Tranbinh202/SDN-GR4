@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import 'react-toastify/dist/ReactToastify.css';
 import HomePage from "./pages/Home/HomePage";
-import ProductDetail from "./pages/Product/Detail";
+import ProductDetail from "./components/Product/ProductDetail";
 import LoginPage from "./pages/Form/LoginPage";
 import RegisterPage from "./pages/Form/RegisterPage";
 import CartPage from "./pages/Cart/CartPage";
@@ -12,6 +12,7 @@ import VerifyOrder from "./pages/Cart/VerifyOrder";
 import PaymentSuccess from "./components/Cart/PaymentSuccess";
 import PaymentCancel from "./components/Cart/PaymentCancel";
 import OrderProcessing from "./components/Order/OrderProcessing";
+
 
 const App = () => {
   return (

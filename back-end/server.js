@@ -10,11 +10,12 @@ const path = require("path");
 const fs = require("fs");
 const shippingRoutes = require("./routes/shippingRoutes");
 const productRouter = require("./routes/productRouter");
+const orderRoutes = require("./routes/orderRoutes");
 const authRoutes = require("./routes/authRoutes");
-const checkoutRoutes = require('./routes/checkoutRoutes');
-
+const checkoutRoutes = require("./routes/checkoutRoutes");
 const userRoutes = require("./routes/authRoutes");
 const { setupSwagger } = require("./swagger/swagger-config");
+const socketManager = require("./socket/socketManager");
 dotenv.config();
 connectDB();
 
@@ -37,10 +38,25 @@ app.use("/api/users", userRoutes);
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/products", productRouter);
 app.use("/api/auth", authRoutes);
-app.use('/api', checkoutRoutes);
+app.use("/api", checkoutRoutes);
 
 const PORT = process.env.PORT || 5000;
+const server = http.createServer(app);
 
+socketManager.initSocket(server);
+
+const OrderController = require("./controllers/orderController");
+setInterval(async () => {
+  try {
+    console.log("Đang kiểm tra trạng thái đơn hàng...");
+    const result = await OrderController.checkAndUpdateOrderStatus();
+    if (result.updatedCount > 0) {
+      console.log(`Đã cập nhật ${result.updatedCount} đơn hàng`);
+    }
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra trạng thái đơn hàng:", error);
+  }
+}, 30000);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -161,7 +161,7 @@
 
 /**
  * @swagger
- * /api/shipping/{orderId}:
+ * /api/shipping/create/{orderId}:
  *   post:
  *     summary: Tạo vận đơn mới cho đơn hàng
  *     tags: [Shipping]

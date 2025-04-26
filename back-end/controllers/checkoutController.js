@@ -1,5 +1,5 @@
-const Cart = require('../models/Cart');
-const Order = require('../models/Order');
+const Cart = require("../models/Cart");
+const Order = require("../models/Orders");
 
 exports.checkout = async (req, res) => {
   try {
@@ -23,7 +23,8 @@ exports.checkout = async (req, res) => {
       fullName,
       phone,
       address,
-      total: cart.total
+      total: cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+      status: "pending"
     });
 
     await order.save();
@@ -36,4 +37,4 @@ exports.checkout = async (req, res) => {
     console.error('Checkout error:', error);
     res.status(500).json({ message: 'Error processing checkout' });
   }
-}; 
+};
