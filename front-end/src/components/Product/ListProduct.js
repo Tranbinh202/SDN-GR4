@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Spinner, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { FaHeart } from "react-icons/fa"; // Import icon trái tim
 import "./ListProduct.css";
 
 const API_BASE_URL = "http://localhost:9999/api";
@@ -10,13 +9,11 @@ const API_BASE_URL = "http://localhost:9999/api";
 const ListProduct = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
-  const token = localStorage.getItem("authToken") || "";
 
   useEffect(() => {
     fetchProducts(currentPage);
@@ -27,7 +24,7 @@ const ListProduct = () => {
       setLoading(true);
       setError(null);
       const response = await axios.get(`${API_BASE_URL}/products?page=${page}&limit=8`);
-      console.log('Products response:', response.data); // Debug log
+      console.log('Products response:', response.data);
       if (response.data && Array.isArray(response.data.products)) {
         setProducts(response.data.products);
         setTotalPages(response.data.totalPages || 1);
@@ -53,24 +50,9 @@ const ListProduct = () => {
     }
   };
 
-  const fetchFavorites = async () => {
-    if (!token) return;
-    try {
-      const response = await axios.get(`${API_BASE_URL}/favorites`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFavorites(response.data.favorites.map((fav) => fav._id));
-    } catch (err) {
-      console.error("Lỗi khi tải danh sách yêu thích:", err);
-    }
-  };
-
   useEffect(() => {
     fetchCategories();
-    if (token) {
-      fetchFavorites();
-    }
-  }, [token]);
+  }, []);
 
   const getBrandName = (brandId) => {
     if (!brandId || !categories) return "Không xác định";
@@ -85,12 +67,10 @@ const ListProduct = () => {
   };
 
   const getColorsFromVariants = (product) => {
-    // First check if product has a colors array
     if (product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
       return [...new Set(product.colors)];
     }
     
-    // If not, try to get colors from variants
     if (product.variants && Array.isArray(product.variants)) {
       const variantColors = product.variants
         .filter(variant => variant && variant.color)
@@ -110,37 +90,6 @@ const ListProduct = () => {
       .filter(variant => variant && typeof variant.price === 'number')
       .map(variant => variant.price);
     return prices.length > 0 ? Math.min(...prices) : 0;
-  };
-
-  const toggleFavorite = async (productId, productName) => {
-    if (!token) {
-      window.alert("Vui lòng đăng nhập để thêm vào danh sách yêu thích!");
-      return;
-    }
-
-    const isFavorited = favorites.includes(productId);
-    try {
-      if (isFavorited) {
-        await axios.post(
-          `${API_BASE_URL}/favorites/remove`,
-          { productId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setFavorites(favorites.filter((id) => id !== productId));
-        window.alert(`Đã xóa "${productName}" khỏi danh sách yêu thích!`);
-      } else {
-        await axios.post(
-          `${API_BASE_URL}/favorites/add`,
-          { productId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setFavorites([...favorites, productId]);
-        window.alert(`Đã thêm "${productName}" vào danh sách yêu thích!`);
-      }
-    } catch (error) {
-      console.error("Lỗi khi cập nhật yêu thích:", error);
-      window.alert("Có lỗi xảy ra, vui lòng thử lại sau!");
-    }
   };
 
   const changePage = (newPage) => {
@@ -187,39 +136,10 @@ const ListProduct = () => {
                   }).format(getLowestPrice(product.variants))}
                 </p>
               </div>
-
-              {token && (
-                <button
-                  className={`favorite-button ${favorites.includes(product._id) ? "favorited" : ""}`}
-                  onClick={() => product._id && toggleFavorite(product._id, product.name || 'Sản phẩm')}
-                >
-                  <FaHeart size={24} />
-                </button>
-              )}
             </div>
           );
         })}
       </div>
-
-      {totalPages > 1 && (
-        <div className="pagination_lp">
-          <button onClick={() => changePage(currentPage - 1)} disabled={currentPage === 1}>
-            ⬅ Trước
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => changePage(i + 1)}
-              className={currentPage === i + 1 ? "active_lp" : ""}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button onClick={() => changePage(currentPage + 1)} disabled={currentPage === totalPages}>
-            Tiếp ➡
-          </button>
-        </div>
-      )}
     </div>
   );
 };

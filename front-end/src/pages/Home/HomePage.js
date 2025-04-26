@@ -3,7 +3,6 @@ import Header from "../../components/Common/Header";
 import Footer from "../../components/Common/Footer"; 
 import ListProduct from "../../components/Product/ListProduct";
 import Banner from '../../components/Common/Banner';
-import MostFavoriteProducts from "../../components/Product/MostFavoriteProducts";
 import "./HomePage.css";
 
 const HomePage = () => {
@@ -17,9 +16,6 @@ const HomePage = () => {
         <div className="main_product_wrapper_hp">
           <div className="list_product_container_hp">
             <ListProduct />
-          </div>
-          <div className="most_favorite_container_hp">
-            <MostFavoriteProducts />
           </div>
         </div>
       </div>

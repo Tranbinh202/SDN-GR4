@@ -9,10 +9,8 @@ const {
   updateProduct,
   deleteProduct,
   getProductsByCategory,
-  filterProduct,
-  getSimilarProducts,
 } = require("../controllers/productController");
-const { authMiddleware, adminMiddleware } = require("../middleware/auth");
+const { authMiddleware, checkRole } = require("../middleware/auth");
 
 // Cấu hình multer để upload ảnh
 const storage = multer.diskStorage({
@@ -47,17 +45,11 @@ router.get("/:id", getProductById);
 // Lấy sản phẩm theo danh mục
 router.get("/category/:categoryId", getProductsByCategory);
 
-// Lọc sản phẩm
-router.get("/filter", filterProduct);
-
-// Lấy sản phẩm tương tự
-router.get("/similar/:productId", getSimilarProducts);
-
 // Thêm sản phẩm mới (chỉ admin)
 router.post(
   "/",
   authMiddleware,
-  adminMiddleware,
+  checkRole(["admin"]),
   upload.fields([
     { name: "mainImage", maxCount: 1 },
     { name: "additionalImages", maxCount: 4 },
@@ -69,7 +61,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  adminMiddleware,
+  checkRole(["admin"]),
   upload.fields([
     { name: "mainImage", maxCount: 1 },
     { name: "additionalImages", maxCount: 4 },
@@ -78,6 +70,6 @@ router.put(
 );
 
 // Xóa sản phẩm (chỉ admin)
-router.delete("/:id", authMiddleware, adminMiddleware, deleteProduct);
+router.delete("/:id", authMiddleware, checkRole(["admin"]), deleteProduct);
 
 module.exports = router;

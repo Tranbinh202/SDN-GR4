@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Product = require("../models/Product");
-const Category = require("../models/Category");
+const Category = require("../models/Categories");
 
 // Lấy tất cả sản phẩm
 const getAllProducts = async (req, res) => {
