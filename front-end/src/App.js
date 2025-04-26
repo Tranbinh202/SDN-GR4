@@ -12,6 +12,7 @@ import VerifyOrder from "./pages/Cart/VerifyOrder";
 import PaymentSuccess from "./components/Cart/PaymentSuccess";
 import PaymentCancel from "./components/Cart/PaymentCancel";
 import OrderProcessing from "./components/Order/OrderProcessing";
+import ShippingAddressSelector from "./components/map/map";
 
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-cancel" element={<PaymentCancel />} />
         <Route path="/order-processing" element={<OrderProcessing />} />
+        <Route path="/map" element={<ShippingAddressSelector />} />
       </Routes>
     </Router>
   );
