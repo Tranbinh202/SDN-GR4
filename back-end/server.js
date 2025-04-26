@@ -15,6 +15,7 @@ const authRoutes = require("./routes/authRoutes");
 const checkoutRoutes = require("./routes/checkoutRoutes");
 // const userRoutes = require("./routes/userRoutes");
 const { setupSwagger } = require("./swagger/swagger-config");
+const socketManager = require("./socket/socketManager");
 dotenv.config();
 connectDB();
 

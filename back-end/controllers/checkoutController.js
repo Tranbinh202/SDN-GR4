@@ -1,5 +1,5 @@
-const Cart = require('../models/Cart');
-const Order = require('../models/Order');
+const Cart = require("../models/Cart");
+const Order = require("../models/Orders");
 
 exports.checkout = async (req, res) => {
   try {
@@ -19,8 +19,11 @@ exports.checkout = async (req, res) => {
       fullName,
       phone,
       address,
-      total: cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-      status: "pending"
+      total: cart.items.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      ),
+      status: "pending",
     });
     await order.save();
 
@@ -31,4 +34,4 @@ exports.checkout = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi đặt hàng", error: error.message });
   }
-}; 
+};
