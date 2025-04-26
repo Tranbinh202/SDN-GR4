@@ -21,13 +21,13 @@ exports.authMiddleware = async (req, res, next) => {
       return res.status(401).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
     }
 
-    // Kiểm tra _id có hợp lệ không
-    if (!mongoose.Types.ObjectId.isValid(decoded._id)) {
+    // Kiểm tra userId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(decoded.userId)) {
       return res.status(400).json({ message: "ID người dùng trong token không hợp lệ" });
     }
 
     // Kiểm tra xem user có tồn tại trong database không
-    const user = await User.findById(decoded._id);
+    const user = await User.findById(decoded.userId);
     if (!user) {
       return res.status(404).json({ message: "Người dùng không tồn tại" });
     }

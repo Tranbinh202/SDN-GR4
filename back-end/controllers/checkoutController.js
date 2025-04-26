@@ -3,32 +3,37 @@ const Order = require('../models/Order');
 
 exports.checkout = async (req, res) => {
   try {
-    const userId = req.user.userId;
     const { fullName, phone, address } = req.body;
-
-    // Lấy giỏ hàng của user
-    const cart = await Cart.findOne({ customer_id: userId });
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ message: "Giỏ hàng trống!" });
+    
+    // Validate required fields
+    if (!fullName || !phone || !address) {
+      return res.status(400).json({ message: 'Please provide all required shipping information' });
     }
 
-    // Tạo đơn hàng mới
+    // Get user's cart
+    const cart = await Cart.findOne({ user_id: req.user._id });
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ message: 'Cart is empty' });
+    }
+
+    // Create new order
     const order = new Order({
-      customer_id: userId,
+      customer_id: req.user._id,
       items: cart.items,
       fullName,
       phone,
       address,
-      total: cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-      status: "pending"
+      total: cart.total
     });
+
     await order.save();
 
-    // Xóa giỏ hàng sau khi đặt hàng
-    await Cart.deleteOne({ customer_id: userId });
+    // Delete the cart after order is placed
+    await Cart.findOneAndDelete({ user_id: req.user._id });
 
-    res.json({ success: true, message: "Đặt hàng thành công!", order });
+    res.status(201).json({ message: 'Order placed successfully', order });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi khi đặt hàng", error: error.message });
+    console.error('Checkout error:', error);
+    res.status(500).json({ message: 'Error processing checkout' });
   }
 }; 

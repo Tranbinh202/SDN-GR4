@@ -13,7 +13,7 @@ const productRouter = require("./routes/productRouter");
 const authRoutes = require("./routes/authRoutes");
 const checkoutRoutes = require('./routes/checkoutRoutes');
 
-// const userRoutes = require("./routes/userRoutes");
+const userRoutes = require("./routes/authRoutes");
 const { setupSwagger } = require("./swagger/swagger-config");
 dotenv.config();
 connectDB();
@@ -32,7 +32,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Thiết lập Swagger
 setupSwagger(app);
 
-// app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/products", productRouter);
