@@ -50,7 +50,7 @@ setInterval(async () => {
   try {
     console.log("Đang kiểm tra trạng thái đơn hàng...");
     const result = await OrderController.checkAndUpdateOrderStatus();
-    if (result.updatedCount > 0) {
+    if (result && result.updatedCount > 0) {
       console.log(`Đã cập nhật ${result.updatedCount} đơn hàng`);
     }
   } catch (error) {

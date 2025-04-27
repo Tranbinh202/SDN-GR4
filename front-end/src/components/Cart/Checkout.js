@@ -5,6 +5,8 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Checkout.css";
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const Checkout = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("authToken") || "";
@@ -24,6 +26,7 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Lấy thông tin người dùng và giỏ hàng khi component được render
   useEffect(() => {
@@ -107,19 +110,16 @@ const Checkout = () => {
   // Xử lý submit đơn hàng
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Kiểm tra thông tin người nhận trước khi thanh toán
-    if (!formData.fullName || !formData.phone || !formData.address) {
-      setError("Vui lòng điền đầy đủ thông tin người nhận (Họ tên, Số điện thoại, Địa chỉ)");
-      return;
-    }
+    setIsProcessing(true);
+    setError("");
+    setSuccess("");
+
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/checkout",
+        `${API_URL}/checkout/complete`,
         {
-          fullName: formData.fullName,
-          phone: formData.phone,
-          address: formData.address,
-          paymentMethod: paymentMethod === "bank_transfer" ? "payos" : "cash"
+          discountCode,
+          paymentMethod,
         },
         {
           headers: {
@@ -127,17 +127,27 @@ const Checkout = () => {
           },
         }
       );
-      if (paymentMethod === "bank_transfer" && response.data.paymentUrl) {
-        window.location.href = response.data.paymentUrl;
-      } else {
-        setSuccess("Đơn hàng đã được đặt thành công!");
-        localStorage.removeItem("cart");
-        navigate('/order-processing', { state: { order: response.data.order } });
+
+      if (response.data.success) {
+        setSuccess("Đơn hàng đã được đặt thành công! Bạn sẽ nhận được email xác nhận trong giây lát.");
+        
+        // Nếu có URL thanh toán (PayOS)
+        if (response.data.paymentUrl) {
+          window.location.href = response.data.paymentUrl;
+        } else {
+          // Chuyển hướng đến trang xác nhận đơn hàng
+          setTimeout(() => {
+            navigate('/order-processing', { state: { order: response.data.order } });
+          }, 2000);
+        }
       }
     } catch (error) {
+      console.error("Lỗi khi đặt hàng:", error);
       setError(
         error.response?.data?.message || "Có lỗi xảy ra khi xử lý đơn hàng"
       );
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -348,11 +358,16 @@ const Checkout = () => {
             variant="secondary"
             type="button"
             onClick={() => navigate("/cart")}
+            disabled={isProcessing}
           >
             Quay lại giỏ hàng
           </Button>
-          <Button variant="primary" type="submit">
-            Hoàn tất đơn hàng
+          <Button 
+            variant="primary" 
+            type="submit" 
+            disabled={isProcessing}
+          >
+            {isProcessing ? 'Đang xử lý...' : 'Hoàn tất đơn hàng'}
           </Button>
         </div>
       </Form>

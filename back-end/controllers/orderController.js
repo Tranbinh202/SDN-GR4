@@ -4,116 +4,58 @@ const {
   sendOrderStatusUpdateEmail,
 } = require("../services/emailService");
 
-const checkAndUpdateOrderStatus = async (req, res) => {
+// Hàm kiểm tra và cập nhật trạng thái đơn hàng
+const checkAndUpdateOrderStatus = async () => {
+  let updatedCount = 0;
   try {
-    const { orderId } = req.params;
+    // Lấy tất cả đơn hàng đang chờ xử lý
+    const pendingOrders = await Order.find({ 
+      status: { $in: ['pending', 'processing', 'shipped'] } 
+    });
 
-    const order = await Order.findById(orderId)
-      .populate("userId", "email name")
-      .populate("items");
+    for (const order of pendingOrders) {
+      try {
+        // Kiểm tra và cập nhật trạng thái dựa trên thời gian
+        const now = new Date();
+        const orderDate = new Date(order.createdAt);
+        const hoursDiff = (now - orderDate) / (1000 * 60 * 60);
 
-    if (!order) {
-      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-    }
+        let newStatus = order.status;
+        
+        // Logic cập nhật trạng thái dựa trên thời gian
+        if (order.status === 'pending' && hoursDiff >= 1) {
+          newStatus = 'processing';
+        } else if (order.status === 'processing' && hoursDiff >= 24) {
+          newStatus = 'shipped';
+        } else if (order.status === 'shipped' && hoursDiff >= 48) {
+          newStatus = 'delivered';
+        }
 
-    let statusChanged = false;
-    let newStatus = order.status;
-    let statusMessage = "";
+        // Nếu trạng thái thay đổi
+        if (newStatus !== order.status) {
+          order.status = newStatus;
+          await order.save();
+          updatedCount++;
 
-    if (
-      order.paymentStatus === "Đã thanh toán" &&
-      order.status === "Đang xử lý"
-    ) {
-      newStatus = "Đã xác nhận";
-      statusMessage = "Đơn hàng đã được xác nhận và đang chuẩn bị hàng";
-      statusChanged = true;
-    } else if (
-      order.status === "Đã xác nhận" &&
-      order.shippingStatus === "Đang giao hàng"
-    ) {
-      newStatus = "Đang giao";
-      statusMessage = "Đơn hàng đang được giao đến bạn";
-      statusChanged = true;
-    } else if (
-      order.shippingStatus === "Đã giao hàng" &&
-      order.status !== "Đã hoàn thành"
-    ) {
-      newStatus = "Đã hoàn thành";
-      statusMessage = "Đơn hàng đã được giao thành công";
-      statusChanged = true;
-    }
+          // Gửi email thông báo
+          await sendOrderStatusUpdateEmail(order.userEmail, {
+            orderId: order._id,
+            status: newStatus
+          });
 
-    if (statusChanged) {
-      // Cập nhật trạng thái đơn hàng
-      order.status = newStatus;
-      order.updatedAt = new Date();
-      await order.save();
-
-      // Tạo thông báo cho người dùng
-      const notification = new Notification({
-        user: order.userId._id,
-        type: "order",
-        message: `${statusMessage} (Mã đơn hàng: #${order.order_code})`,
-        link: `/orders/${order._id}`,
-        isRead: false,
-        relevantId: order._id,
-        relevantModel: "Order",
-      });
-      await notification.save();
-
-      // Gửi email thông báo
-      await sendOrderStatusUpdateEmail(order.userId.email, {
-        orderId: order._id,
-        orderCode: order.order_code,
-        status: order.status,
-        customerName: order.userId.name,
-      });
-
-      // Gửi thông báo qua socket
-      const io = socketManager.getIO();
-      if (io) {
-        const statusData = {
-          orderId: order._id.toString(),
-          orderCode: order.order_code,
-          status: newStatus,
-          message: statusMessage,
-          timestamp: new Date(),
-        };
-
-        // Thông báo đến phòng của đơn hàng cụ thể
-        io.to(`order_${order._id}`).emit("orderStatusChanged", statusData);
-
-        // Thông báo đến phòng của tất cả đơn hàng của người dùng
-        io.to(`user_orders_${order.userId._id}`).emit(
-          "orderStatusChanged",
-          statusData
-        );
+          console.log(`Đã cập nhật trạng thái đơn hàng ${order._id} thành ${newStatus}`);
+        }
+      } catch (error) {
+        console.error(`Lỗi khi cập nhật đơn hàng ${order._id}:`, error);
       }
-
-      return res.status(200).json({
-        message: "Trạng thái đơn hàng đã được cập nhật",
-        order,
-        statusChanged: true,
-        previousStatus: order.status !== newStatus ? order.status : null,
-        newStatus,
-      });
     }
-
-    // Nếu không có thay đổi trạng thái
-    return res.status(200).json({
-      message: "Không có thay đổi trạng thái đơn hàng",
-      order,
-      statusChanged: false,
-    });
   } catch (error) {
-    console.error("Lỗi khi kiểm tra và cập nhật trạng thái đơn hàng:", error);
-    return res.status(500).json({
-      message: "Đã xảy ra lỗi khi kiểm tra trạng thái đơn hàng",
-      error: error.message,
-    });
+    console.error('Lỗi khi kiểm tra trạng thái đơn hàng:', error);
   }
+  return { updatedCount };
 };
-// Update order status and send email notification
+
+// Hàm cập nhật trạng thái đơn hàng thủ công
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -121,26 +63,22 @@ const updateOrderStatus = async (req, res) => {
 
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Update order status
     order.status = status;
-    order.updatedAt = new Date();
     await order.save();
 
-    // Send email notification
+    // Gửi email thông báo
     await sendOrderStatusUpdateEmail(order.userEmail, {
       orderId: order._id,
-      status: order.status,
+      status: order.status
     });
 
-    res.json({ message: "Order status updated successfully", order });
+    res.json({ message: 'Order status updated successfully', order });
   } catch (error) {
-    console.error("Error updating order status:", error);
-    res
-      .status(500)
-      .json({ message: "Error updating order status", error: error.message });
+    console.error('Error updating order status:', error);
+    res.status(500).json({ message: 'Error updating order status', error: error.message });
   }
 };
 
