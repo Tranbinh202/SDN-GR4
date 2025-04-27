@@ -1,5 +1,6 @@
 const Cart = require("../models/Cart");
 const Order = require("../models/Orders");
+const { sendPaymentConfirmationEmail } = require('../services/emailService');
 
 exports.checkout = async (req, res) => {
   try {
@@ -31,6 +32,13 @@ exports.checkout = async (req, res) => {
 
     // Delete the cart after order is placed
     await Cart.findOneAndDelete({ user_id: req.user._id });
+
+    // Gửi email xác nhận đơn hàng
+    await sendPaymentConfirmationEmail(req.user.email, {
+      orderId: order._id,
+      totalAmount: order.total,
+      paymentMethod: req.body.paymentMethod || 'cash'
+    });
 
     res.status(201).json({ message: 'Order placed successfully', order });
   } catch (error) {
